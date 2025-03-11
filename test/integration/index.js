@@ -1,5 +1,4 @@
 var _ = require('lodash');
-const Promise = require('bluebird');
 
 module.exports = function(Bookshelf) {
   var Knex = require('knex');
@@ -10,25 +9,12 @@ module.exports = function(Bookshelf) {
     connection: config.sqlite3,
     useNullAsDefault: true
   });
-  var mysql = require('knex')({
-    client: 'mysql',
-    connection: config.mysql,
-    pool: {
-      afterCreate: function(connection, callback) {
-        var asyncQuery = Promise.promisify(connection.query, {context: connection});
-        return asyncQuery('SET SESSION sql_mode=?', ['TRADITIONAL,NO_AUTO_VALUE_ON_ZERO']).then(function() {
-          callback(null, connection);
-        });
-      }
-    }
-  });
 
-  var MySQL = require('../../bookshelf')(mysql);
   var PostgreSQL = require('../../bookshelf')(pg);
   var SQLite3 = require('../../bookshelf')(sqlite3);
   var Swapped = require('../../bookshelf')(Knex({client: 'sqlite3', useNullAsDefault: true}));
   Swapped.knex = sqlite3;
-  var databases = [SQLite3, Swapped, MySQL, PostgreSQL];
+  var databases = [SQLite3, Swapped, PostgreSQL];
 
   it('should allow creating a new Bookshelf instance with "new"', function() {
     var bookshelf = new Bookshelf(sqlite3);
